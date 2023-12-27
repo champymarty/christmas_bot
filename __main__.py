@@ -30,35 +30,32 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: discord.Message):
-    print(message)
     if message.channel.id in command_channel_id and message.author.id in listen_members_id:
         await new_mimu_house_command(message)
         
 async def new_mimu_house_command(message: discord.Message):
     text = build_text(message)
-    if " " in text:
+    matchs: list[str] = re.findall(r"<@[0-9]+>,.you have earned [0-9]+", text, re.IGNORECASE | re.MULTILINE)
+    for match in matchs:
+        parts = match.strip().split(" ")
+        try:
+            point_to_add = int(parts[-1])
+            member_id = int(match.split("@")[1].split(">")[0].strip())
+            emoji = '\N{THUMBS UP SIGN}'
+            if not member_id in member_to_points:
+                member_to_points[member_id] = point_to_add
+            else:
+                member_to_points[member_id] += point_to_add
+            save_data()
+            await message.add_reaction(emoji)
 
-        matchs: list[str] = re.findall(r"<@[0-9]+>,.you have earned [0-9]+", text, re.IGNORECASE | re.MULTILINE)
-        for match in matchs:
-            parts = match.strip().split(" ")
-            try:
-                point_to_add = int(parts[-1])
-                member_id = int(match.split("@")[1].split(">")[0].strip())
-                emoji = '\N{THUMBS UP SIGN}'
-                if not member_id in member_to_points:
-                    member_to_points[member_id] = point_to_add
-                else:
-                    member_to_points[member_id] += point_to_add
-                save_data()
-                await message.add_reaction(emoji)
-
-                member: discord.Member = await get_or_fetch(message.guild, "member", int(member_id))
-                description=f"The member {member.mention} have received {point_to_add}. That member now have {member_to_points.get(member_id)} points\n[Jump to mimu message]({message.jump_url})"
-                embed = discord.Embed(title="You have received new currency !", description=description)
-                await message.channel.send(embed=embed)
-            except:
-                exception = traceback.format_exception()
-                await message.channel.send(f"```{exception}```")
+            member: discord.Member = await get_or_fetch(message.guild, "member", int(member_id))
+            description=f"The member {member.mention} have received {point_to_add}. That member now have {member_to_points.get(member_id)} points\n[Jump to mimu message]({message.jump_url})"
+            embed = discord.Embed(title="You have received new currency !", description=description)
+            await message.channel.send(embed=embed)
+        except:
+            exception = traceback.format_exception()
+            await message.channel.send(f"```{exception}```")
 
 @bot.slash_command(description="Show ranking")
 async def leaderboard(ctx: discord.ApplicationContext):
