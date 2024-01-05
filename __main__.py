@@ -17,7 +17,12 @@ bot : discord.Bot = discord.Bot(intents=intents)
 member_to_points = {}
 
 command_channel_id = {
-    964318267785216020
+    964318267785216020, # meemo testing
+    1189679223288369193, # Fountain 1
+    1189679598498222230, # Fountain 2
+    1190704329703833700, # valentine 1
+    1190704371458117674, # valentin 2
+    1191843216136339567 # fountain-test
 }
 
 listen_members_id = {
@@ -50,8 +55,11 @@ async def new_mimu_house_command(message: discord.Message):
             await message.add_reaction(emoji)
 
             member: discord.Member = await get_or_fetch(message.guild, "member", int(member_id))
-            description=f"The member {member.mention} have received {point_to_add}. That member now have {member_to_points.get(member_id)} points\n[Jump to mimu message]({message.jump_url})"
-            embed = discord.Embed(title="You have received new currency !", description=description)
+            description=f"""{member.mention} has received {point_to_add} <:Amortenia_NF2U:1187203058384519168>
+
+You now have {member_to_points.get(member_id)} <:Amortenia_NF2U:1187203058384519168> 
+[Jump to mimu message]({message.jump_url})"""
+            embed = discord.Embed(title="Potions saved !", description=description, color=0xFFD3E2)
             await message.channel.send(embed=embed)
         except:
             exception = traceback.format_exception()
@@ -66,33 +74,34 @@ async def leaderboard(ctx: discord.ApplicationContext):
         current_points = 0
     
     if len(member_to_points) == 0:
-        description = "No one have participated yet"
+        description = "No one has participated yet"
     else:
         i = 1
         description = ""
         for member_id, points in {k: v for k, v in sorted(member_to_points.items(), key=lambda item: item[1], reverse=True)}.items():
             member: discord.Member = await get_or_fetch(ctx.guild, "member", int(member_id))
-            description += "{}) {} with {} points \n".format(i, member.mention, points)
+            description += f"{i}) {member.mention} with {points} <:Amortenia_NF2U:1187203058384519168> \n"
             i += 1
-    embed = discord.Embed(title="You have {} points".format(current_points), description=description)
+    embed = discord.Embed(title=f"You have {current_points} <:Amortenia_NF2U:1187203058384519168>", 
+                          description=description, color=0xFFD3E2)
     await ctx.respond(embed=embed)
     
 @bot.slash_command(description="Get my current points")
 async def balance(ctx: discord.ApplicationContext,
                        member: discord.Option(
                             discord.Member, 
-                            description="The member to check his/her points", required=False, default=None)):
+                            description="The member to check their points", required=False, default=None)):
     global member_to_points
     await ctx.defer()
     current_points = 0
     if member is None:
         if ctx.author.id in member_to_points:
             current_points = member_to_points.get(ctx.author.id)
-        await ctx.respond("You have now {} points".format(current_points))
+        await ctx.respond("You now have {} <:Amortenia_NF2U:1187203058384519168>".format(current_points))
     else:
         if member.id in member_to_points:
             current_points = member_to_points.get(member.id)
-        await ctx.respond(embed=discord.Embed(description="The user {} now have {} points".format(
+        await ctx.respond(embed=discord.Embed(description="The user {} now has {} <:Amortenia_NF2U:1187203058384519168>".format(
             member.mention, current_points)))
 
 
@@ -105,21 +114,21 @@ async def add_points(ctx: discord.ApplicationContext, member: discord.Member, po
     else:
         member_to_points[member.id] += points
     save_data()
-    await ctx.respond(embed = discord.Embed(description="{} points where added to {}. New total is {} points".format(
+    await ctx.respond(embed = discord.Embed(description="{} <:Amortenia_NF2U:1187203058384519168> were added to {}. New total is {} <:Amortenia_NF2U:1187203058384519168>".format(
         points, member.mention, member_to_points[member.id] )))
     
-@bot.slash_command(description="Remove points to a member")
+@bot.slash_command(description="Remove points from a member")
 async def remove_points(ctx: discord.ApplicationContext, member: discord.Member, points: discord.Option(int, min_value=0)):
     global member_to_points
     await ctx.defer()
     if not member.id in member_to_points:
-        await ctx.respond(embed = discord.Embed(description="No points where remove because {} dont have any yet".format(
+        await ctx.respond(embed = discord.Embed(description="No <:Amortenia_NF2U:1187203058384519168> were removed because {} doesn't have any yet".format(
             member.mention
         )))
     else:
         member_to_points[member.id] -= points
         save_data()
-        await ctx.respond(embed = discord.Embed(description="{} points where remove from {}. New total is {} points".format(
+        await ctx.respond(embed = discord.Embed(description="{} <:Amortenia_NF2U:1187203058384519168> were removed from {}. New total is {} points".format(
             points, member.mention, member_to_points[member.id])))
     
 @bot.slash_command(description="Set points to a member")
@@ -128,13 +137,13 @@ async def set_points(ctx: discord.ApplicationContext, member: discord.Member, po
     await ctx.defer()
     member_to_points[member.id] = points
     save_data()
-    await ctx.respond(embed = discord.Embed(description="{} now have {} points".format(member.mention, points)))
+    await ctx.respond(embed = discord.Embed(description="{} now has {} <:Amortenia_NF2U:1187203058384519168>".format(member.mention, points)))
     
 @bot.slash_command(description="Delete all the points data")
 async def clear_all_points(ctx: discord.ApplicationContext):
     global member_to_points
     view = Confirm()
-    await ctx.respond("Do you really want to delete all the points of EVERYONE ?", view=view)
+    await ctx.respond("Do you really want to delete all the <:Amortenia_NF2U:1187203058384519168> of EVERYONE ?", view=view)
     await view.wait()
     if view.value:
         member_to_points = {}
